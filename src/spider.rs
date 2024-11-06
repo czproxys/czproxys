@@ -1,8 +1,6 @@
 use std::time::Duration;
 use tokio_retry::{strategy::FixedInterval, Retry};
 use reqwest::{Client, Error};
-use md5;
-
 
 pub struct Spider {
     pub urls: Vec<String>
@@ -28,8 +26,8 @@ impl Spider {
 }
 
 async fn fetch_with_retry(client: &Client, url: &str) -> Result<String, Error> {    
-    let url_md5 = format!("{:x}", md5::compute(url.as_bytes()));
-    println!("spider core downloader => {}",url_md5);
+    //let url_md5 = format!("{:x}", md5::compute(url.as_bytes()));
+    //println!("spider core downloader => {}",url_md5);
     let strategy = FixedInterval::from_millis(1000).take(3); // 每2秒重试，最多重试3次
     let action = || async {
         let response = client.get(url).send().await?;

@@ -19,5 +19,5 @@ regex = "1.10.4"
 futures = "0.3"
 rusqlite = { version = "0.31.0", features = ["bundled"] }
 async-recursion = "1.1.0"
-md5 = "0.7.0"
+#md5 = "0.7.0"
 hashbrown = "0.15"

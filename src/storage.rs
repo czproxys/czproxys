@@ -56,7 +56,7 @@ pub fn store_proxies(proxies: Vec<Proxy>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn live_proxies_db_update() -> Result<(),Box<dyn Error>> {
+pub fn live_proxies_db_update() -> Result<usize,Box<dyn Error>> {
     let conn = Connection::open("proxies.db")?;
     let mut stmt = conn.prepare("SELECT ip, port, proxy_type, country, last_checked, check_number, live FROM all_proxies WHERE live = TRUE")?;
     let proxy_iter = stmt.query_map([], |row| {
@@ -72,15 +72,15 @@ pub fn live_proxies_db_update() -> Result<(),Box<dyn Error>> {
     })?;
 
     conn.execute("DELETE FROM live_proxies", [])?;
-
+    let mut cnt = 0;
     for proxy in proxy_iter {
-        let proxy = proxy?;
+        let proxy = proxy?; cnt += 1;
         conn.execute(
             "INSERT INTO live_proxies (ip, port, proxy_type, country, last_checked, check_number, live) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![proxy.ip, proxy.port, proxy.proxy_type, proxy.country, proxy.last_checked, proxy.check_number, proxy.live],
         )?;
     }
-    Ok(())
+    Ok(cnt)
 }
 
 pub fn fetch_all_proxies() -> Result<Vec<Proxy>, Box<dyn Error>> {

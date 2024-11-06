@@ -7,17 +7,25 @@ use crate::storage::{store_proxies,live_proxies_db_update};
 
 
 pub async fn check_proxy_alive(proxy: &Proxy) -> bool {
-    let proxy_url = format!("http://{}:{}", proxy.ip, proxy.port);
+    let proxy_type = "http"; //proxy.proxy_type.split(", ").collect::<Vec<_>>()[0];
+    let proxy_url = format!("{}://{}:{}", proxy_type, proxy.ip, proxy.port);
     let client = Client::builder()
-        .proxy(reqwest::Proxy::all(&proxy_url).unwrap())
+        .proxy(reqwest::Proxy::all(&proxy_url).expect(&format!("Client builder, proxy: {proxy_url}")))
         .build()
         .unwrap();
 
-    let test_url = "http://httpbin.org/ip";
+    let test_url = "https://httpbin.org/ip";
     match client.get(test_url).timeout(Duration::from_secs(10)).send().await {
-        Ok(response) => response.status().is_success(),
-        Err(_) => {
-            println!("{:?}",proxy);
+        Ok(response) => {
+            print!("{:?} status: {}",proxy, response.status());
+            if response.status().is_success() {
+                print!(" is_success!");
+            }
+            println!("");
+            response.status().is_success()
+        },
+        Err(_e) => {
+            //println!("{:?}",proxy);
             false
         },
     }
@@ -59,7 +67,8 @@ pub async fn store_checked_proxies(check_proxies: Vec<Proxy>) {
     println!("inserting all live proxy to db...");
 
     tokio::task::spawn_blocking(|| {
-        let _ = live_proxies_db_update();
+        let cnt = live_proxies_db_update().unwrap();
+        println!("Alive proxies - {cnt}");
     }).await.expect("Failed to execute live_proxies_db_update");
 
     println!("All db stored, bye !!!")
