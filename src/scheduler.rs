@@ -1,4 +1,3 @@
-use chrono::Local;
 use std::error::Error;
 use crate::spider;
 use crate::{extractor::Extractor, structer::Proxy};
@@ -56,11 +55,9 @@ async fn geonode_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
 }
 
 pub async fn all_spider_running() -> Result<Vec<Proxy>, Box<dyn Error>> {
-    let mut proxies = vec![];
-    let p = advanced_spider().await?;
-    let aaaa = geonode_spider().await?;
-    proxies.extend(aaaa);
-    proxies.extend(p);
+    let mut proxies = advanced_spider().await?;
+    let mut geo = geonode_spider().await?;
+    proxies.append(&mut geo);
     Ok(proxies)
 }
 
@@ -72,7 +69,7 @@ pub async fn all_enginer_running() -> Result<(), Box<dyn Error>> {
     new_proxies.dedup_by(|a, b| a.ip == b.ip && a.port == b.port);
     println!("dedup sipder data => {:#?}", new_proxies.len());
     let mut old_proxies = fetch_all_proxies()?;
-    let mut proxy_map: std::collections::HashMap<(String, String), Proxy> = old_proxies
+    let mut proxy_map: hashbrown::HashMap<(String, String), Proxy> = old_proxies
     .drain(..) // 移动 old_proxies 中的所有元素
     .map(|p| ((p.ip.clone(), p.port.clone()), p))
     .collect();
@@ -80,7 +77,7 @@ pub async fn all_enginer_running() -> Result<(), Box<dyn Error>> {
     for proxy in new_proxies {
         match proxy_map.get_mut(&(proxy.ip.clone(), proxy.port.clone())) {
             Some(existing_proxy) => {
-                existing_proxy.last_checked = proxy.last_checked.clone();
+                existing_proxy.last_checked = proxy.last_checked;
             },
             None => {
                 proxy_map.insert((proxy.ip.clone(), proxy.port.clone()), proxy);

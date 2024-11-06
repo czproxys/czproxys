@@ -50,19 +50,19 @@ pub async fn process_proxies(proxies: Vec<Proxy>) -> Vec<Proxy> {
 
 pub async fn store_checked_proxies(check_proxies: Vec<Proxy>) {
 
-    println!("insert all discovery proxy to db");
+    println!("inserting all discovery proxy to db...");
 
     tokio::task::spawn_blocking(|| {
         let _ = store_proxies(check_proxies);
-    }).await.expect("Failed to execute live_proxies_db_update");
+    }).await.expect("Failed to execute store_proxies");
     
-    println!("insert all live proxy to db");
+    println!("inserting all live proxy to db...");
 
     tokio::task::spawn_blocking(|| {
         let _ = live_proxies_db_update();
     }).await.expect("Failed to execute live_proxies_db_update");
 
-    println!("bye !!!")
+    println!("All db stored, bye !!!")
 
 }
 

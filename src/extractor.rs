@@ -1,13 +1,9 @@
 use scraper::{Html, Selector};
-use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
 use base64::{Engine as _, engine::general_purpose};
 use std::vec;
-use regex::Regex;
-use std::str::FromStr;
 use std::{error::Error, str};
 use serde_json;
 use crate::structer::{GeonodeProxy,GeonodeProxyData,Proxy};
-use crate::structer::CheckerProxy;
 
 pub struct Extractor;
 
