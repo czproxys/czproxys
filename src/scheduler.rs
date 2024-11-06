@@ -6,13 +6,9 @@ use crate::validator::{process_proxies,store_checked_proxies};
 
 async fn advanced_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
 
-    let advanced_urls = vec![
-        "https://advanced.name/freeproxy?page=1".to_string(),
-        "https://advanced.name/freeproxy?page=2".to_string(),
-        "https://advanced.name/freeproxy?page=3".to_string(),
-        "https://advanced.name/freeproxy?page=4".to_string(),
-        "https://advanced.name/freeproxy?page=5".to_string(),
-    ];
+    let advanced_urls: Vec<String> = (1..=7).map(|page| {
+        format!("https://advanced.name/freeproxy?page={page}")
+    }).collect();
     
     let mut proxies: Vec<Proxy> = Vec::new();
     let spider = spider::Spider::new(advanced_urls).await;
@@ -34,7 +30,7 @@ async fn advanced_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
 
 async fn geonode_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
     let proxylist_urls: Vec<String> = (0..=9).map(|page| {
-        format!("https://proxylist.geonode.com/api/proxy-list?limit=500&page={}&sort_by=lastChecked&sort_type=desc", page)
+        format!("https://proxylist.geonode.com/api/proxy-list?limit=500&page={page}&sort_by=lastChecked&sort_type=desc")
     }).collect();
     let mut proxies: Vec<Proxy> = Vec::new();
     let spider = spider::Spider::new(proxylist_urls).await;
