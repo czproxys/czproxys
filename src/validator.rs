@@ -5,9 +5,14 @@ use crate::structer::Proxy;
 use futures::stream::{self, StreamExt};
 use crate::storage::{store_proxies,live_proxies_db_update};
 
-
+pub fn proxy_scheme(proxy_types: &str) -> String {
+    let proxy_types = proxy_types.to_lowercase();
+    let mut proxy_scheme = proxy_types.split(", ").collect::<Vec<_>>()[0];
+    if proxy_scheme == "socks4" {proxy_scheme = "socks5"};
+    proxy_scheme.to_string()
+}
 pub async fn check_proxy_alive(proxy: &Proxy) -> bool {
-    let proxy_type = "http"; //proxy.proxy_type.split(", ").collect::<Vec<_>>()[0];
+    let proxy_type = proxy_scheme(&proxy.proxy_type);
     let proxy_url = format!("{}://{}:{}", proxy_type, proxy.ip, proxy.port);
     let client = Client::builder()
         .proxy(reqwest::Proxy::all(&proxy_url).expect(&format!("Client builder, proxy: {proxy_url}")))
@@ -17,12 +22,10 @@ pub async fn check_proxy_alive(proxy: &Proxy) -> bool {
     let test_url = "https://httpbin.org/ip";
     match client.get(test_url).timeout(Duration::from_secs(10)).send().await {
         Ok(response) => {
-            print!("{:?} status: {}",proxy, response.status());
-            if response.status().is_success() {
-                print!(" is_success!");
-            }
-            println!("");
-            response.status().is_success()
+            print!("{proxy_url} {:?} status: {}", proxy, response.status());
+            let ret = response.status().is_success();
+            println!(" body: {}", response.text().await.unwrap_or_default());
+            ret
         },
         Err(_e) => {
             //println!("{:?}",proxy);

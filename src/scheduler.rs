@@ -29,7 +29,7 @@ async fn advanced_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
 }
 
 async fn geonode_spider() -> Result<Vec<Proxy>, Box<dyn Error>> {
-    let proxylist_urls: Vec<String> = (0..=9).map(|page| {
+    let proxylist_urls: Vec<String> = (0..=15).map(|page| {
         format!("https://proxylist.geonode.com/api/proxy-list?limit=500&page={page}&sort_by=lastChecked&sort_type=desc")
     }).collect();
     let mut proxies: Vec<Proxy> = Vec::new();

@@ -9,7 +9,7 @@ edition = "2021"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_with = "3.7.0"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = { version = "0.12", features = ["json", "socks"] }
 tokio = { version = "1", features = ["full"] }
 tokio-retry = "0.3.0"
 scraper = "0.19.0"
