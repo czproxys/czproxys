@@ -59,11 +59,11 @@ pub async fn all_spider_running() -> Result<Vec<Proxy>, Box<dyn Error>> {
 
 pub async fn all_enginer_running() -> Result<(), Box<dyn Error>> {
     let mut new_proxies = all_spider_running().await?;
-    println!("new sipder data => {:#?}", new_proxies.len());
+    println!("load new spider data => {:#?}", new_proxies.len());
     new_proxies.sort_by(|a, b| a.ip.cmp(&b.ip).then_with(|| a.port.cmp(&b.port)));
     new_proxies.sort_by(|a, b| b.last_checked.cmp(&a.last_checked));
     new_proxies.dedup_by(|a, b| a.ip == b.ip && a.port == b.port);
-    println!("dedup sipder data => {:#?}", new_proxies.len());
+    println!("after dedup spider data => {:#?}", new_proxies.len());
     let mut old_proxies = fetch_all_proxies()?;
     let mut proxy_map: hashbrown::HashMap<(String, String), Proxy> = old_proxies
     .drain(..) // 移动 old_proxies 中的所有元素
@@ -81,7 +81,7 @@ pub async fn all_enginer_running() -> Result<(), Box<dyn Error>> {
         }
     }
     let merged_proxies: Vec<Proxy> = proxy_map.into_values().collect();
-    println!("merge sipder data => {:#?}", merged_proxies.len());
+    println!("merge spider data with db data => {:#?}", merged_proxies.len());
     let checked_proxies = process_proxies(merged_proxies).await;
     store_checked_proxies(checked_proxies).await;
     Ok(())

@@ -10,6 +10,7 @@ pub struct Proxy {
     pub country: String,
     pub last_checked: String,
     pub check_number: u64,
+    pub live_number: u64,
     pub live: bool
 }
 

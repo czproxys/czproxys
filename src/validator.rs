@@ -24,14 +24,16 @@ pub async fn check_proxy_alive(proxy: &Proxy) -> bool {
     let test_url = "https://httpbin.org/ip";
     match client.get(test_url).timeout(Duration::from_secs(10)).send().await {
         Ok(response) => {
-            print!("{proxy_url} {:?} status: {}", proxy, response.status());
             let ret = response.status().is_success();
-            if ret {print!(" body: {}", response.text().await.unwrap_or_default());}
-            println!();
+            if ret {
+                print!("{proxy_url} {:?} status: {}", proxy, response.status());
+                //print!(" body: {}", response.text().await.unwrap_or_default());
+                println!();
+            }
             ret
         },
         Err(_e) => {
-            //println!("{:?}",proxy);
+            //println!("{:?} {:?}", proxy, _e);
             false
         },
     }
@@ -53,12 +55,13 @@ pub async fn process_proxies(proxies: Vec<Proxy>) -> Vec<Proxy> {
                 country: proxy.country.to_uppercase(),
                 last_checked, 
                 check_number: proxy.check_number + 1,
+                live_number: proxy.live_number + alive as u64,
                 live: alive,
             }
         }
     }));
 
-    check_futures.buffered(300).collect().await
+    check_futures.buffered(100).collect().await
 }
 
 
@@ -67,7 +70,7 @@ pub async fn store_checked_proxies(check_proxies: Vec<Proxy>) {
     println!("inserting all discovery proxy to db...");
 
     tokio::task::spawn_blocking(|| {
-        let _ = store_proxies(check_proxies);
+        store_proxies(check_proxies).unwrap();
     }).await.expect("Failed to execute store_proxies");
     
     println!("inserting all live proxy to db...");

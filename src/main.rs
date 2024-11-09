@@ -30,7 +30,7 @@ async fn run_periodically() -> Result<(),Box<dyn Error>> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let _ = initialize_db();
+    initialize_db()?;
     run_periodically().await
 
 }

@@ -51,6 +51,7 @@ impl Extractor {
                     country: country.to_string(),
                     last_checked: last_checked.to_string(),
                     check_number: 0,
+                    live_number: 0,
                     live: false
                 };
                 proxies.push(proxy);
@@ -79,6 +80,7 @@ impl Extractor {
                 country,
                 last_checked,
                 check_number: 0,
+                live_number: 0,
                 live: false
             };
             proxies.push(proxy);
