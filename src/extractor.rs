@@ -1,13 +1,9 @@
 use scraper::{Html, Selector};
-use chrono::{DateTime, Duration, NaiveDateTime, TimeZone, Utc};
 use base64::{Engine as _, engine::general_purpose};
 use std::vec;
-use regex::Regex;
-use std::str::FromStr;
 use std::{error::Error, str};
 use serde_json;
 use crate::structer::{GeonodeProxy,GeonodeProxyData,Proxy};
-use crate::structer::CheckerProxy;
 
 pub struct Extractor;
 
@@ -55,6 +51,7 @@ impl Extractor {
                     country: country.to_string(),
                     last_checked: last_checked.to_string(),
                     check_number: 0,
+                    live_number: 0,
                     live: false
                 };
                 proxies.push(proxy);
@@ -83,6 +80,7 @@ impl Extractor {
                 country,
                 last_checked,
                 check_number: 0,
+                live_number: 0,
                 live: false
             };
             proxies.push(proxy);

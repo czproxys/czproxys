@@ -5,19 +5,35 @@ use crate::structer::Proxy;
 use futures::stream::{self, StreamExt};
 use crate::storage::{store_proxies,live_proxies_db_update};
 
-
+pub fn proxy_scheme(proxy_types: &str, force_https: bool) -> String {
+    let proxy_types = proxy_types.to_lowercase();
+    let mut proxy_scheme = proxy_types.split(", ").collect::<Vec<_>>()[0];
+    if proxy_scheme == "socks4" {proxy_scheme = "socks5"};
+    if force_https && proxy_types.contains("https") {proxy_scheme = "https"};
+    proxy_scheme.to_string()
+}
 pub async fn check_proxy_alive(proxy: &Proxy) -> bool {
-    let proxy_url = format!("http://{}:{}", proxy.ip, proxy.port);
+    let proxy_type = proxy_scheme(&proxy.proxy_type, false);
+    let proxy_url = format!("{}://{}:{}", proxy_type, proxy.ip, proxy.port);
     let client = Client::builder()
-        .proxy(reqwest::Proxy::all(&proxy_url).unwrap())
+        .proxy(reqwest::Proxy::all(&proxy_url).expect(&format!("Client builder, proxy: {proxy_url}")))
+        .danger_accept_invalid_certs(true)
         .build()
         .unwrap();
 
-    let test_url = "http://httpbin.org/ip";
+    let test_url = "https://httpbin.org/ip";
     match client.get(test_url).timeout(Duration::from_secs(10)).send().await {
-        Ok(response) => response.status().is_success(),
-        Err(_) => {
-            println!("{:?}",proxy);
+        Ok(response) => {
+            let ret = response.status().is_success();
+            if ret {
+                print!("{proxy_url} {:?} status: {}", proxy, response.status());
+                //print!(" body: {}", response.text().await.unwrap_or_default());
+                println!();
+            }
+            ret
+        },
+        Err(_e) => {
+            //println!("{:?} {:?}", proxy, _e);
             false
         },
     }
@@ -39,30 +55,32 @@ pub async fn process_proxies(proxies: Vec<Proxy>) -> Vec<Proxy> {
                 country: proxy.country.to_uppercase(),
                 last_checked, 
                 check_number: proxy.check_number + 1,
+                live_number: proxy.live_number + alive as u64,
                 live: alive,
             }
         }
     }));
 
-    check_futures.buffered(300).collect().await
+    check_futures.buffered(100).collect().await
 }
 
 
 pub async fn store_checked_proxies(check_proxies: Vec<Proxy>) {
 
-    println!("insert all discovery proxy to db");
+    println!("inserting all discovery proxy to db...");
 
     tokio::task::spawn_blocking(|| {
-        let _ = store_proxies(check_proxies);
-    }).await.expect("Failed to execute live_proxies_db_update");
+        store_proxies(check_proxies).unwrap();
+    }).await.expect("Failed to execute store_proxies");
     
-    println!("insert all live proxy to db");
+    println!("inserting all live proxy to db...");
 
     tokio::task::spawn_blocking(|| {
-        let _ = live_proxies_db_update();
+        let cnt = live_proxies_db_update().unwrap();
+        println!("Alive proxies - {cnt}");
     }).await.expect("Failed to execute live_proxies_db_update");
 
-    println!("bye !!!")
+    println!("All db stored, bye !!!")
 
 }
 
